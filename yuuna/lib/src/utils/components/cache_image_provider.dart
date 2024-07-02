@@ -18,7 +18,7 @@ class CacheImageProvider extends ImageProvider<CacheImageProvider> {
   final Uint8List img;
 
   @override
-  ImageStreamCompleter load(CacheImageProvider key, DecoderCallback decode) {
+  ImageStreamCompleter loadBuffer(CacheImageProvider key, DecoderBufferCallback decode) {
     return MultiFrameImageStreamCompleter(
       codec: _loadAsync(decode),
       scale: 1,
@@ -29,7 +29,7 @@ class CacheImageProvider extends ImageProvider<CacheImageProvider> {
     );
   }
 
-  Future<Codec> _loadAsync(DecoderCallback decode) async {
+  Future<Codec> _loadAsync(DecoderBufferCallback decode) async {
     // the DefaultCacheManager() encapsulation, it get cache from local storage.
     final Uint8List bytes = img;
 
@@ -38,8 +38,8 @@ class CacheImageProvider extends ImageProvider<CacheImageProvider> {
       PaintingBinding.instance.imageCache.evict(this);
       throw StateError('$tag is empty and cannot be loaded as an image.');
     }
-
-    return decode(bytes);
+    final ImmutableBuffer buffer = await ImmutableBuffer.fromUint8List(bytes);
+    return decode(buffer);
   }
 
   @override

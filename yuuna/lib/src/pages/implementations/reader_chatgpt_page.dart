@@ -189,9 +189,9 @@ class _ReaderChatgptPageState extends BaseSourcePageState<ReaderChatgptPage> {
     }
   }
 
-  Future<List<Map<String, String>>> getMessages() async {
+  Future<List<Map<String, dynamic>>> getMessages() async {
     List<MessageItem> messageItems =
-        appModel.messages.sublist(max(0, appModel.messages.length - 20));
+    appModel.messages.sublist(max(0, appModel.messages.length - 20));
 
     while (messageItems.isNotEmpty &&
         4096 <
@@ -204,12 +204,12 @@ class _ReaderChatgptPageState extends BaseSourcePageState<ReaderChatgptPage> {
     return getMessagesFromList(messageItems);
   }
 
-  List<Map<String, String>> getMessagesFromList(List<MessageItem> items) {
+  List<Map<String, dynamic>> getMessagesFromList(List<MessageItem> items) {
     return items
         .map((item) => {
-              'role': item.isBot ? 'assistant' : 'user',
-              'content': item.message,
-            })
+      'role': item.isBot ? 'assistant' : 'user',
+      'content': item.message,
+    })
         .toList();
   }
 
@@ -248,7 +248,7 @@ class _ReaderChatgptPageState extends BaseSourcePageState<ReaderChatgptPage> {
 
     final chatComplete = _openAI.onChatCompletionSSE(
       request: ChatCompleteText(
-        model: ChatModel.gptTurbo0301,
+        model: ChatModelFromValue(model: 'gpt-3.5-turbo'),
         messages: await getMessages(),
         maxToken: 1500,
       ),
@@ -256,12 +256,12 @@ class _ReaderChatgptPageState extends BaseSourcePageState<ReaderChatgptPage> {
 
     _streamSubscription = chatComplete.listen(
       (data) {
-        if (responseIndex != data.choices.lastOrNull?.index) {
-          responseIndex = data.choices.lastOrNull?.index;
+        if (responseIndex != data.choices?.lastOrNull?.index) {
+          responseIndex = data.choices?.lastOrNull?.index;
           _buffer.clear();
         }
 
-        _buffer.write(data.choices.lastOrNull?.message?.content);
+        _buffer.write(data.choices?.lastOrNull?.message?.content);
         _progressNotifier.value = _buffer.toString();
 
         _scrollController.animateTo(_scrollController.position.minScrollExtent,
